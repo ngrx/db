@@ -5,10 +5,10 @@
 		"experimentalDecorators": true,
 		"module": "commonjs",
 		"moduleResolution": "node",
-		"outDir": "dist",
+		"outDir": "../example_dist",
 		"declaration": true
 	},
 	"files": [
-    "src/index.ts"
+		"main.ts"
 	]
 }

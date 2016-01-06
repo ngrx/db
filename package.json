@@ -2,10 +2,12 @@
   "name": "@ngrx/db",
   "version": "1.0.0",
   "description": "RxJS + IndexedDB for Angular2",
-  "main": "dist/db.js",
+  "main": "dist/index.js",
   "scripts": {
     "test": "test",
-    "demo": "tsc && http-server"
+    "clean": "rm -rf dist",
+    "clean_example": "rm -rf example_dist",
+    "example": "npm run clean_example && tsc -p ./example && http-server"
   },
   "author": "Rob Wormald <robwormald@gmail.com>",
   "license": "MIT",
@@ -21,5 +23,6 @@
     "systemjs": "^0.19.11",
     "typescript": "^1.7.5",
     "zone.js": "^0.5.10"
-  }
+  },
+  "typings": "dist/index.d.ts"
 }
