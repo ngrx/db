@@ -1,0 +1,25 @@
+{
+  "name": "@ngrx/db",
+  "version": "1.0.0",
+  "description": "RxJS + IndexedDB for Angular2",
+  "main": "dist/db.js",
+  "scripts": {
+    "test": "test",
+    "demo": "tsc && http-server"
+  },
+  "author": "Rob Wormald <robwormald@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "angular2": "^2.0.0-beta.0",
+    "rxjs": "^5.0.0-beta.0"
+  },
+  "devDependencies": {
+    "es6-promise": "^3.0.2",
+    "es6-shim": "^0.33.13",
+    "http-server": "^0.8.5",
+    "reflect-metadata": "^0.1.2",
+    "systemjs": "^0.19.11",
+    "typescript": "^1.7.5",
+    "zone.js": "^0.5.10"
+  }
+}

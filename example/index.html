@@ -1,0 +1,31 @@
+<html>
+  <head>
+    <title>Database Demo</title>
+    <script src="../node_modules/systemjs/dist/system.js"></script>
+    <script src="../node_modules/angular2/bundles/angular2-polyfills.js"></script>
+    <script src="../node_modules/angular2/bundles/angular2.dev.js"></script>
+    <script src="../node_modules/rxjs/bundles/rx.js"></script>
+    <script>
+      System.config({
+        map: {
+          '@ngrx/db': '../dist/src',
+          'demo': '../dist/example'
+        },
+        packages: {
+          '@ngrx/db': {
+            defaultExtension: 'js',
+            main: 'index.js'
+          },
+          'demo': {
+            defaultExtension: 'js',
+            main: 'main.js'
+          }
+        }
+      });
+      System.import('demo');
+    </script>
+  </head>
+  <body>
+    <demo-app></demo-app>
+  </body>
+</html>
