@@ -1,10 +1,11 @@
 import 'rxjs/Rx';
 import {Observable} from 'rxjs/Observable';
 import {Subscriber} from 'rxjs/Subscriber';
+import {Subject} from 'rxjs/Subject';
 import {OpaqueToken, Inject} from 'angular2/core';
 
 import {DBUpgradeHandler, DBSchema, DBStore} from './interfaces';
-import {IDB_SUCCESS, IDB_COMPLETE, IDB_ERROR, IDB_UPGRADE_NEEDED, IDB_SCHEMA, DatabaseBackend} from './constants';
+import {IDB_SUCCESS, IDB_COMPLETE, IDB_ERROR, IDB_UPGRADE_NEEDED, IDB_SCHEMA, DB_INSERT, DatabaseBackend} from './constants';
 
 export class IDBLogger {
   log(...args){
@@ -15,6 +16,9 @@ export class IDBLogger {
 export const getIDBFactory = () => window.indexedDB || self.indexedDB;
 
 export class Database {
+  
+  public changes:Subject<any> = new Subject()
+  
   private _idb:IDBFactory;
   private _schema: DBSchema;
   private _logger: IDBLogger;
@@ -94,6 +98,7 @@ export class Database {
   }
   
   insert(storeName:string, records:any[]){
+    const changes = this.changes;
     return this.open(this._schema.name)
       .mergeMap(db => {
         return new Observable(txnObserver => {
@@ -119,7 +124,9 @@ export class Database {
             });
           }
           
-          let requestSubscriber = Observable.from(records).mergeMap(makeRequest)
+          let requestSubscriber = Observable.from(records)
+            .mergeMap(makeRequest)
+            .do(payload => changes.next({type: DB_INSERT, payload }))
             .subscribe(txnObserver);
           
           return () => {
