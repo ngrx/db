@@ -4,10 +4,13 @@ import {Subscriber} from 'rxjs/Subscriber';
 import {Subject} from 'rxjs/Subject';
 import {OpaqueToken, Inject, provide} from 'angular2/core';
 
-export const IDB_SUCCESS = 'success';
-export const IDB_COMPLETE = 'complete';
-export const IDB_ERROR = 'error';
-export const IDB_UPGRADE_NEEDED = 'upgradeneeded';
+const IDB_SUCCESS = 'success';
+const IDB_COMPLETE = 'complete';
+const IDB_ERROR = 'error';
+const IDB_UPGRADE_NEEDED = 'upgradeneeded';
+
+const IDB_TXN_READ = 'read';
+const IDB_TXN_READWRITE = 'readwrite';
 
 export const DB_INSERT = 'DB_INSERT';
 
@@ -112,12 +115,17 @@ export class Database {
     })
   }
   
-  insert(storeName:string, records:any[]){
+  insert(storeName:string, records:any[], notify:boolean = true){
+    return this.executeWrite(storeName, 'add', records)
+      .do(payload => notify ? this.changes.next({type: DB_INSERT, payload }) : ({}));
+  }
+  
+  executeWrite(storeName:string, actionType:string, records:any[]){
     const changes = this.changes;
     return this.open(this._schema.name)
       .mergeMap(db => {
         return new Observable(txnObserver => {
-          const txn = db.transaction([storeName], 'readwrite');
+          const txn = db.transaction([storeName], IDB_TXN_READWRITE);
           const objectStore = txn.objectStore(storeName);
           
           const onTxnError = (err) => txnObserver.error(err);
@@ -128,7 +136,7 @@ export class Database {
           
           const makeRequest = (record) => {
             return new Observable(reqObserver => {
-              let req = objectStore.add(record);
+              let req = objectStore[actionType](record);
               req.addEventListener(IDB_SUCCESS, () => {
                 let $key = req.result
                 reqObserver.next({$key, record});
@@ -141,7 +149,6 @@ export class Database {
           
           let requestSubscriber = Observable.from(records)
             .mergeMap(makeRequest)
-            .do(payload => changes.next({type: DB_INSERT, payload }))
             .subscribe(txnObserver);
           
           return () => {
