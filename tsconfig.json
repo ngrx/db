@@ -9,7 +9,7 @@
 		"declaration": true
 	},
 	"files": [
-    "src/index.ts",
+    "src/database.ts",
     "spec/db_spec.ts"
 	]
 }

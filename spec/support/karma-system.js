@@ -36,7 +36,6 @@ System.config({
 
 // Import all the specs, execute their `main()` method and kick off Karma (Jasmine).
 System.import('spec').then(function(mod) {
-  console.log('imported...', mod)
   return; 
 })
 .catch(function(err){

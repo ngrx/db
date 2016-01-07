@@ -23,7 +23,6 @@ var createTSCPreprocessor = function (args, config, logger, helper) {
         var opts = helper._.clone(options);
         try {
             result = ts.transpile(content, { module: 1 /* CommonJS */, emitDecoratorMetadata: true });
-            console.log(result)
         }
         catch (e) {
             log.error('%s\n  at %s:%d', e.message, file.originalPath);

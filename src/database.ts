@@ -2,9 +2,17 @@ import 'rxjs/Rx';
 import {Observable} from 'rxjs/Observable';
 import {Subscriber} from 'rxjs/Subscriber';
 import {Subject} from 'rxjs/Subject';
-import {OpaqueToken, Inject} from 'angular2/core';
+import {OpaqueToken, Inject, provide} from 'angular2/core';
 
-import {IDB_SUCCESS, IDB_COMPLETE, IDB_ERROR, IDB_UPGRADE_NEEDED, IDB_SCHEMA, DB_INSERT, DatabaseBackend} from './constants';
+export const IDB_SUCCESS = 'success';
+export const IDB_COMPLETE = 'complete';
+export const IDB_ERROR = 'error';
+export const IDB_UPGRADE_NEEDED = 'upgradeneeded';
+
+export const DB_INSERT = 'DB_INSERT';
+
+export const DatabaseBackend = new OpaqueToken("IndexedDBBackend");
+export const IDB_SCHEMA = new OpaqueToken("IDB_SCHEMA");
 
 export interface DBUpgradeHandler {
   (db:IDBDatabase):void;
@@ -21,12 +29,6 @@ export interface DBSchema {
   stores:{[storename:string]:DBStore}
 }
 
-export class IDBLogger {
-  log(...args){
-    console.log.apply(console, args);
-  }
-}
-
 export const getIDBFactory = () => window.indexedDB || self.indexedDB;
 
 export class Database {
@@ -35,20 +37,21 @@ export class Database {
   
   private _idb:IDBFactory;
   private _schema: DBSchema;
-  private _logger: IDBLogger;
-  constructor(_logger:IDBLogger, @Inject(DatabaseBackend) idbBackend, @Inject(IDB_SCHEMA) schema){
+
+  constructor(@Inject(DatabaseBackend) idbBackend, @Inject(IDB_SCHEMA) schema){
     this._schema = schema;
     this._idb = idbBackend;
-    this._logger = _logger;
   }
   
-  private _upgradeDB(db:IDBDatabase){
-    this._logger.log('upgrading DB');
-    
+  private _upgradeDB(observer, db:IDBDatabase){
     for(var storeName in this._schema.stores){
+      if(db.objectStoreNames.contains(storeName)){
+        db.deleteObjectStore(storeName);
+      }
       this._createObjectStore(db, storeName, this._schema.stores[storeName]);
     }
-    return;
+    observer.next(db);
+    observer.complete();
   }
   
   private _createObjectStore(db:IDBDatabase, key:string, schema:DBStore){
@@ -56,12 +59,10 @@ export class Database {
   }
   
   open(dbName:string, version:number = 1, upgradeHandler?:DBUpgradeHandler):Observable<IDBDatabase> {
-    this._logger.log(`opening db ${dbName}`);
-    this._logger.log(`schema version ${this._schema.version}`);
     const idb = this._idb;
     return new Observable((observer:Subscriber<any>) => {
       
-      const db = idb.open(dbName, this._schema.version);
+      const openReq = idb.open(dbName, this._schema.version);
       
       const onSuccess = (event) => {
         observer.next(event.target.result);
@@ -73,17 +74,17 @@ export class Database {
       }
       
       const onUpgradeNeeded = (event) => {
-        this._upgradeDB(event.target.result);
+        this._upgradeDB(observer, event.target.result);
       }
       
-      db.addEventListener(IDB_SUCCESS, onSuccess);
-      db.addEventListener(IDB_ERROR, onError);
-      db.addEventListener(IDB_UPGRADE_NEEDED, onUpgradeNeeded);
+      openReq.addEventListener(IDB_SUCCESS, onSuccess);
+      openReq.addEventListener(IDB_ERROR, onError);
+      openReq.addEventListener(IDB_UPGRADE_NEEDED, onUpgradeNeeded);
       
       return () => {
-        db.removeEventListener(IDB_SUCCESS, onSuccess);
-        db.removeEventListener(IDB_ERROR, onError);
-        db.removeEventListener(IDB_UPGRADE_NEEDED, onUpgradeNeeded);
+        openReq.removeEventListener(IDB_SUCCESS, onSuccess);
+        openReq.removeEventListener(IDB_ERROR, onError);
+        openReq.removeEventListener(IDB_UPGRADE_NEEDED, onUpgradeNeeded);
       }
     
     });
@@ -134,7 +135,7 @@ export class Database {
               });
               req.addEventListener(IDB_ERROR, (err) => {
                 reqObserver.error(err);
-              })
+              });
             });
           }
           
@@ -156,6 +157,17 @@ export class Database {
     return this._idb.cmp(a, b);
   }
 }
+
+export const DB_PROVIDERS:any[] = [
+  provide(DatabaseBackend, {useFactory: getIDBFactory}),
+  Database
+];
+
+export const provideDB = (schema: DBSchema) => {
+  return DB_PROVIDERS.concat([provide(IDB_SCHEMA, {useValue: schema})]);
+}
+
+
 
 
 

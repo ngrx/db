@@ -2,7 +2,7 @@
   "name": "@ngrx/db",
   "version": "1.0.0",
   "description": "RxJS + IndexedDB for Angular2",
-  "main": "dist/index.js",
+  "main": "dist/database.js",
   "scripts": {
     "test": "karma start",
     "build": "npm run build_test",
@@ -33,5 +33,5 @@
     "typescript": "^1.7.5",
     "zone.js": "^0.5.10"
   },
-  "typings": "dist/index.d.ts"
+  "typings": "dist/database.d.ts"
 }
