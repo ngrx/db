@@ -4,8 +4,22 @@ import {Subscriber} from 'rxjs/Subscriber';
 import {Subject} from 'rxjs/Subject';
 import {OpaqueToken, Inject} from 'angular2/core';
 
-import {DBUpgradeHandler, DBSchema, DBStore} from './interfaces';
 import {IDB_SUCCESS, IDB_COMPLETE, IDB_ERROR, IDB_UPGRADE_NEEDED, IDB_SCHEMA, DB_INSERT, DatabaseBackend} from './constants';
+
+export interface DBUpgradeHandler {
+  (db:IDBDatabase):void;
+}
+
+export interface DBStore {
+  primaryKey?: string;
+  autoIncrement?:boolean;
+}
+
+export interface DBSchema {
+  version: number,
+  name: string,
+  stores:{[storename:string]:DBStore}
+}
 
 export class IDBLogger {
   log(...args){
@@ -17,12 +31,12 @@ export const getIDBFactory = () => window.indexedDB || self.indexedDB;
 
 export class Database {
   
-  public changes:Subject<any> = new Subject()
+  public changes:Subject<any> = new Subject();
   
   private _idb:IDBFactory;
   private _schema: DBSchema;
   private _logger: IDBLogger;
-  constructor(_logger:IDBLogger, @Inject(DatabaseBackend) idbBackend:IDBFactory, @Inject(IDB_SCHEMA) schema:DBSchema){
+  constructor(_logger:IDBLogger, @Inject(DatabaseBackend) idbBackend, @Inject(IDB_SCHEMA) schema){
     this._schema = schema;
     this._idb = idbBackend;
     this._logger = _logger;
@@ -130,6 +144,7 @@ export class Database {
             .subscribe(txnObserver);
           
           return () => {
+            requestSubscriber.unsubscribe();
             txn.removeEventListener(IDB_COMPLETE, onTxnComplete);
             txn.removeEventListener(IDB_ERROR, onTxnError);
           }

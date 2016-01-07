@@ -4,7 +4,9 @@
   "description": "RxJS + IndexedDB for Angular2",
   "main": "dist/index.js",
   "scripts": {
-    "test": "test",
+    "test": "karma start",
+    "build": "npm run build_test",
+    "build_test": "tsc -p ./spec",
     "clean": "rm -rf dist",
     "clean_example": "rm -rf example_dist",
     "example": "npm run clean_example && tsc -p ./example && http-server"
@@ -13,12 +15,19 @@
   "license": "MIT",
   "dependencies": {
     "angular2": "^2.0.0-beta.0",
+    "karma-tsc-preprocessor": "0.0.6",
     "rxjs": "^5.0.0-beta.0"
   },
   "devDependencies": {
     "es6-promise": "^3.0.2",
     "es6-shim": "^0.33.13",
     "http-server": "^0.8.5",
+    "jasmine": "^2.4.1",
+    "jasmine-core": "^2.4.1",
+    "karma": "^0.13.19",
+    "karma-chrome-launcher": "^0.2.2",
+    "karma-firefox-launcher": "^0.1.7",
+    "karma-jasmine": "^0.3.6",
     "reflect-metadata": "^0.1.2",
     "systemjs": "^0.19.11",
     "typescript": "^1.7.5",

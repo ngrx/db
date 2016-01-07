@@ -1,10 +1,9 @@
-import {Database, getIDBFactory, IDBLogger} from './database';
+import {Database, getIDBFactory, IDBLogger,DBSchema} from './database';
 import {DatabaseBackend, IDB_SCHEMA} from './constants';
-import {DBSchema} from './interfaces';
 import {provide} from 'angular2/core';
 
 export * from './database';
-export * from './interfaces';
+export * from './constants';
 
 
 export const DB_PROVIDERS:any[] = [

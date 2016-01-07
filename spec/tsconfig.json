@@ -5,11 +5,10 @@
 		"experimentalDecorators": true,
 		"module": "commonjs",
 		"moduleResolution": "node",
-		"outDir": "dist",
+		"outDir": "../tmp",
 		"declaration": true
 	},
-	"files": [
-    "src/index.ts",
-    "spec/db_spec.ts"
-	]
+	"exclude": [
+    "node_modules"
+  ]
 }
