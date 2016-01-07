@@ -1,5 +1,6 @@
 // Karma configuration
 // Generated on Wed Jan 06 2016 19:58:14 GMT-0800 (PST)
+var argv = require('yargs').argv;
 
 module.exports = function(config) {
   config.set({
@@ -70,7 +71,7 @@ module.exports = function(config) {
 
     // Continuous Integration mode
     // if true, Karma captures browsers, runs the tests and exits
-    singleRun: false,
+    singleRun: argv.ci,
 
     // Concurrency level
     // how many browser should be started simultaneous
