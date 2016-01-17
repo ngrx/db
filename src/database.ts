@@ -9,7 +9,7 @@ const IDB_COMPLETE = 'complete';
 const IDB_ERROR = 'error';
 const IDB_UPGRADE_NEEDED = 'upgradeneeded';
 
-const IDB_TXN_READ = 'read';
+const IDB_TXN_READ = 'readonly';
 const IDB_TXN_READWRITE = 'readwrite';
 
 export const DB_INSERT = 'DB_INSERT';
@@ -118,6 +118,80 @@ export class Database {
   insert(storeName:string, records:any[], notify:boolean = true){
     return this.executeWrite(storeName, 'add', records)
       .do(payload => notify ? this.changes.next({type: DB_INSERT, payload }) : ({}));
+  }
+  
+  get(storeName:string, key:any){
+    return this.open(this._schema.name)
+      .mergeMap(db => {
+        return new Observable(txnObserver => {
+         const txn = db.transaction([storeName], IDB_TXN_READ);
+         const objectStore = txn.objectStore(storeName);
+         
+         const getRequest = objectStore.get(key);
+         
+         const onTxnError = (err) => txnObserver.error(err);
+         const onTxnComplete = () => txnObserver.complete();
+         const onRecordFound = (ev) => txnObserver.next(getRequest.result);
+          
+         txn.addEventListener(IDB_COMPLETE, onTxnComplete);
+         txn.addEventListener(IDB_ERROR, onTxnError);
+         
+         getRequest.addEventListener(IDB_SUCCESS, onRecordFound);
+         getRequest.addEventListener(IDB_ERROR, onTxnError);
+         
+         return () => {
+           getRequest.removeEventListener(IDB_SUCCESS, onRecordFound);
+           getRequest.removeEventListener(IDB_ERROR, onTxnError);
+           txn.removeEventListener(IDB_COMPLETE, onTxnComplete);
+           txn.removeEventListener(IDB_ERROR, onTxnError);
+         }
+         
+        });
+      });
+  }
+  
+  query(storeName:string, predicate?:(rec:any) => boolean){
+    return this.open(this._schema.name)
+      .mergeMap(db => {
+        return new Observable(txnObserver => {
+         const txn = db.transaction([storeName], IDB_TXN_READ);
+         const objectStore = txn.objectStore(storeName);
+         
+         const getRequest = objectStore.openCursor();
+         
+         const onTxnError = (err) => txnObserver.error(err);
+         const onRecordFound = (ev) => {
+           let cursor = ev.target.result;
+           if(cursor){
+             if(predicate){
+               const match = predicate(cursor.value);
+               if(match){
+                 txnObserver.next(cursor.value);
+               }
+             }
+             else{
+               txnObserver.next(cursor.value);
+             }
+             cursor.continue();
+           }
+           else {
+             txnObserver.complete();
+           }
+         }
+          
+         txn.addEventListener(IDB_ERROR, onTxnError);
+         
+         getRequest.addEventListener(IDB_SUCCESS, onRecordFound);
+         getRequest.addEventListener(IDB_ERROR, onTxnError);
+         
+         return () => {
+           getRequest.removeEventListener(IDB_SUCCESS, onRecordFound);
+           getRequest.removeEventListener(IDB_ERROR, onTxnError);
+           txn.removeEventListener(IDB_ERROR, onTxnError);
+         }
+         
+        });
+      });
   }
   
   executeWrite(storeName:string, actionType:string, records:any[]){

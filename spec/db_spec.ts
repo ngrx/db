@@ -96,11 +96,53 @@ describe('database functionality', () => {
     idb.changes.subscribe(notif => {
       notificationCount++;
     });
-    idb.insert('todos',[{name: 'todo3'}, {name: 'todo4'}])
+    idb.insert('todos',[{name: 'todo5'}, {name: 'todo6'}])
       .toArray()
       .subscribe(() => {}, (err) => {}, () => {
         expect(notificationCount).toBe(2);
         done();
+      });
+  });
+  
+  it('should get a record by key', (done) => {
+    let found;
+    idb.get('todos', 3)
+      .subscribe(record => {
+        found = record;
+      }, err => {
+        console.error(err);
+        done(err);
+      }, () => {
+        expect(found).toEqual({name: 'todo3'});
+        done()
+      });
+  });
+  
+  it('should iterate records', (done) => {
+    let found;
+    idb.query('todos').toArray()
+      .subscribe(records => {
+        found = records;
+      }, err => {
+        console.error(err);
+        done(err);
+      }, () => {
+        expect(found.length).toEqual(6);
+        done()
+      });
+  });
+  
+  it('should iterate records with a predicate fn', (done) => {
+    let found;
+    idb.query('todos', (rec) => rec.name === 'todo5').toArray()
+      .subscribe(records => {
+        found = records;
+      }, err => {
+        console.error(err);
+        done(err);
+      }, () => {
+        expect(found.length).toEqual(1);
+        done()
       });
   });
   
