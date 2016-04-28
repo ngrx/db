@@ -2,11 +2,13 @@
   "name": "@ngrx/db",
   "version": "1.0.0",
   "description": "RxJS + IndexedDB for Angular2",
-  "main": "dist/database.js",
+  "main": "index.js",
   "scripts": {
     "test": "karma start --ci",
+    "prepare": "npm run clean && npm run build && npm run copy_package",
+    "copy_package": "cp -r package.json dist/package.json",
     "watch": "karma start",
-    "build": "npm run build_test",
+    "build": "tsc",
     "build_test": "tsc -p ./spec",
     "clean": "rm -rf dist",
     "clean_example": "rm -rf example_dist",
@@ -14,9 +16,9 @@
   },
   "author": "Rob Wormald <robwormald@gmail.com>",
   "license": "MIT",
-  "dependencies": {
-    "angular2": "^2.0.0-beta.0",
-    "rxjs": "^5.0.0-beta.0"
+  "peerDependencies": {
+    "angular2": "^2.0.0-beta.14",
+    "rxjs": "^5.0.0-beta.2"
   },
   "devDependencies": {
     "es6-promise": "^3.0.2",

@@ -9,7 +9,8 @@
 		"declaration": true
 	},
 	"files": [
-    "src/database.ts",
-    "spec/db_spec.ts"
+    "typings/browser.d.ts",
+    "src/index.ts",
+    "src/database.ts"
 	]
 }
