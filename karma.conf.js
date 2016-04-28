@@ -7,7 +7,7 @@ module.exports = function(config) {
 
     // base path that will be used to resolve all patterns (eg. files, exclude)
     basePath: '',
-    
+
     plugins: [ require('./spec/support/tsc-preprocessor'), 'karma-jasmine', 'karma-chrome-launcher'],
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
@@ -22,7 +22,7 @@ module.exports = function(config) {
       {pattern: 'node_modules/angular2/src/**/*.js', included: false},
       {pattern: 'node_modules/angular2/*.js', included: false},
       {pattern: 'node_modules/rxjs/**/*.js', included: false},
-      
+
       {pattern: 'src/**/*', included: false},
       {pattern: 'spec/**/*', included: false},
     ],
@@ -71,7 +71,7 @@ module.exports = function(config) {
 
     // Continuous Integration mode
     // if true, Karma captures browsers, runs the tests and exits
-    singleRun: argv.ci,
+    singleRun: false,
 
     // Concurrency level
     // how many browser should be started simultaneous

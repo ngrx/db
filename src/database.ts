@@ -3,6 +3,7 @@ import {Subscriber} from 'rxjs/Subscriber';
 import {Subject} from 'rxjs/Subject';
 import {OpaqueToken, Inject, provide} from 'angular2/core';
 import 'rxjs/add/operator/mergeMap'
+import 'rxjs/add/operator/map'
 import 'rxjs/add/operator/do'
 import 'rxjs/add/operator/toArray'
 import 'rxjs/add/observable/fromArray'
@@ -49,6 +50,15 @@ export class Database {
     this._idb = idbBackend;
   }
 
+  private _mapRecord(objectSchema: DBStore){
+    return (dbResponseRec: any) => {
+      if(!objectSchema.primaryKey){
+        dbResponseRec.record['$key'] = dbResponseRec['$key'];
+      }
+      return dbResponseRec.record;
+    }
+  }
+
   private _upgradeDB(observer, db:IDBDatabase){
     for(var storeName in this._schema.stores){
       if(db.objectStoreNames.contains(storeName)){
@@ -61,7 +71,7 @@ export class Database {
   }
 
   private _createObjectStore(db:IDBDatabase, key:string, schema:DBStore){
-    let objectStore = db.createObjectStore(key, {autoIncrement: true});
+    let objectStore = db.createObjectStore(key, {autoIncrement: true, keyPath: schema.primaryKey});
   }
 
   open(dbName:string, version:number = 1, upgradeHandler?:DBUpgradeHandler):Observable<IDBDatabase> {
@@ -119,7 +129,7 @@ export class Database {
   }
 
   insert(storeName:string, records:any[], notify:boolean = true){
-    return this.executeWrite(storeName, 'add', records)
+    return this.executeWrite(storeName, 'put', records)
       .do(payload => notify ? this.changes.next({type: DB_INSERT, payload }) : ({}));
   }
 
@@ -127,6 +137,8 @@ export class Database {
     return this.open(this._schema.name)
       .mergeMap(db => {
         return new Observable(txnObserver => {
+         const recordSchema = this._schema.stores[storeName];
+         const mapper = this._mapRecord(recordSchema);
          const txn = db.transaction([storeName], IDB_TXN_READ);
          const objectStore = txn.objectStore(storeName);
 
@@ -202,6 +214,8 @@ export class Database {
     return this.open(this._schema.name)
       .mergeMap(db => {
         return new Observable(txnObserver => {
+          const recordSchema = this._schema.stores[storeName];
+          const mapper = this._mapRecord(recordSchema);
           const txn = db.transaction([storeName], IDB_TXN_READWRITE);
           const objectStore = txn.objectStore(storeName);
 
@@ -213,10 +227,19 @@ export class Database {
 
           const makeRequest = (record) => {
             return new Observable(reqObserver => {
-              let req = objectStore[actionType](record);
+              let req;
+              if(recordSchema.primaryKey){
+                req = objectStore[actionType](record);
+              }
+              else {
+                let $key = record['$key'];
+                let $record = Object.assign({}, record);
+                delete $record.key;
+                req = objectStore[actionType]($record, $key);
+              }
               req.addEventListener(IDB_SUCCESS, () => {
-                let $key = req.result
-                reqObserver.next({$key, record});
+                let $key = req.result;
+                reqObserver.next(mapper({$key, record}));
               });
               req.addEventListener(IDB_ERROR, (err) => {
                 reqObserver.error(err);
