@@ -6,8 +6,7 @@
 		"module": "commonjs",
 		"moduleResolution": "node",
 		"outDir": "dist",
-		"declaration": true,
-    "inlineSourceMap": true
+		"declaration": true
 	},
 	"files": [
     "typings/browser.d.ts",
