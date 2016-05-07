@@ -1,12 +1,12 @@
 import {Observable} from 'rxjs/Observable';
 import {Subscriber} from 'rxjs/Subscriber';
 import {Subject} from 'rxjs/Subject';
-import {OpaqueToken, Inject, provide} from 'angular2/core';
-import 'rxjs/add/operator/mergeMap'
-import 'rxjs/add/operator/map'
-import 'rxjs/add/operator/do'
-import 'rxjs/add/operator/toArray'
-import 'rxjs/add/observable/fromArray'
+import {OpaqueToken, Inject, provide} from '@angular/core';
+import 'rxjs/add/operator/mergeMap';
+import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/do';
+import 'rxjs/add/operator/toArray';
+import 'rxjs/add/observable/from';
 
 const IDB_SUCCESS = 'success';
 const IDB_COMPLETE = 'complete';
@@ -18,50 +18,50 @@ const IDB_TXN_READWRITE = 'readwrite';
 
 export const DB_INSERT = 'DB_INSERT';
 
-export const DatabaseBackend = new OpaqueToken("IndexedDBBackend");
-export const IDB_SCHEMA = new OpaqueToken("IDB_SCHEMA");
+export const DatabaseBackend = new OpaqueToken('IndexedDBBackend');
+export const IDB_SCHEMA = new OpaqueToken('IDB_SCHEMA');
 
 export interface DBUpgradeHandler {
-  (db:IDBDatabase):void;
+  (db: IDBDatabase): void;
 }
 
 export interface DBStore {
   primaryKey?: string;
-  autoIncrement?:boolean;
+  autoIncrement?: boolean;
 }
 
 export interface DBSchema {
-  version: number,
-  name: string,
-  stores:{[storename:string]:DBStore}
+  version: number;
+  name: string;
+  stores: {[storename: string]: DBStore};
 }
 
 export const getIDBFactory = () => window.indexedDB || self.indexedDB;
 
 export class Database {
 
-  public changes:Subject<any> = new Subject();
+  public changes: Subject<any> = new Subject();
 
-  private _idb:IDBFactory;
+  private _idb: IDBFactory;
   private _schema: DBSchema;
 
-  constructor(@Inject(DatabaseBackend) idbBackend, @Inject(IDB_SCHEMA) schema){
+  constructor(@Inject(DatabaseBackend) idbBackend, @Inject(IDB_SCHEMA) schema) {
     this._schema = schema;
     this._idb = idbBackend;
   }
 
-  private _mapRecord(objectSchema: DBStore){
+  private _mapRecord(objectSchema: DBStore) {
     return (dbResponseRec: any) => {
-      if(!objectSchema.primaryKey){
+      if (!objectSchema.primaryKey) {
         dbResponseRec.record['$key'] = dbResponseRec['$key'];
       }
       return dbResponseRec.record;
-    }
+    };
   }
 
-  private _upgradeDB(observer, db:IDBDatabase){
-    for(var storeName in this._schema.stores){
-      if(db.objectStoreNames.contains(storeName)){
+  private _upgradeDB(observer, db: IDBDatabase) {
+    for (let storeName in this._schema.stores) {
+      if (db.objectStoreNames.contains(storeName)) {
         db.deleteObjectStore(storeName);
       }
       this._createObjectStore(db, storeName, this._schema.stores[storeName]);
@@ -70,28 +70,28 @@ export class Database {
     observer.complete();
   }
 
-  private _createObjectStore(db:IDBDatabase, key:string, schema:DBStore){
+  private _createObjectStore(db: IDBDatabase, key: string, schema: DBStore) {
     let objectStore = db.createObjectStore(key, {autoIncrement: true, keyPath: schema.primaryKey});
   }
 
-  open(dbName:string, version:number = 1, upgradeHandler?:DBUpgradeHandler):Observable<IDBDatabase> {
+  open(dbName: string, version: number = 1, upgradeHandler?: DBUpgradeHandler): Observable<IDBDatabase> {
     const idb = this._idb;
-    return Observable.create((observer:Subscriber<any>) => {
+    return Observable.create((observer: Subscriber<any>) => {
 
       const openReq = idb.open(dbName, this._schema.version);
 
       const onSuccess = (event) => {
         observer.next(event.target.result);
         observer.complete();
-      }
+      };
       const onError = (err) => {
         console.log(err);
         observer.error(err);
-      }
+      };
 
       const onUpgradeNeeded = (event) => {
         this._upgradeDB(observer, event.target.result);
-      }
+      };
 
       openReq.addEventListener(IDB_SUCCESS, onSuccess);
       openReq.addEventListener(IDB_ERROR, onError);
@@ -101,20 +101,20 @@ export class Database {
         openReq.removeEventListener(IDB_SUCCESS, onSuccess);
         openReq.removeEventListener(IDB_ERROR, onError);
         openReq.removeEventListener(IDB_UPGRADE_NEEDED, onUpgradeNeeded);
-      }
+      };
 
     });
   }
 
-  deleteDatabase(dbName:string){
-    return new Observable((deletionObserver:Subscriber<any>) => {
+  deleteDatabase(dbName: string) {
+    return new Observable((deletionObserver: Subscriber<any>) => {
 
       const deleteRequest = this._idb.deleteDatabase(dbName);
 
       const onSuccess = (event) => {
         deletionObserver.next(null);
         deletionObserver.complete();
-      }
+      };
 
       const onError = (err) => deletionObserver.error(err);
 
@@ -124,16 +124,16 @@ export class Database {
       return () => {
         deleteRequest.removeEventListener(IDB_SUCCESS, onSuccess);
         deleteRequest.removeEventListener(IDB_ERROR, onError);
-      }
-    })
+      };
+    });
   }
 
-  insert(storeName:string, records:any[], notify:boolean = true){
+  insert(storeName: string, records: any[], notify: boolean = true) {
     return this.executeWrite(storeName, 'put', records)
       .do(payload => notify ? this.changes.next({type: DB_INSERT, payload }) : ({}));
   }
 
-  get(storeName:string, key:any){
+  get(storeName: string, key: any) {
     return this.open(this._schema.name)
       .mergeMap(db => {
         return new Observable(txnObserver => {
@@ -159,13 +159,13 @@ export class Database {
            getRequest.removeEventListener(IDB_ERROR, onTxnError);
            txn.removeEventListener(IDB_COMPLETE, onTxnComplete);
            txn.removeEventListener(IDB_ERROR, onTxnError);
-         }
+         };
 
         });
       });
   }
 
-  query(storeName:string, predicate?:(rec:any) => boolean){
+  query(storeName: string, predicate?: (rec: any) => boolean) {
     return this.open(this._schema.name)
       .mergeMap(db => {
         return new Observable(txnObserver => {
@@ -177,14 +177,14 @@ export class Database {
          const onTxnError = (err) => txnObserver.error(err);
          const onRecordFound = (ev) => {
            let cursor = ev.target.result;
-           if(cursor){
-             if(predicate){
+           if (cursor) {
+             if (predicate) {
                const match = predicate(cursor.value);
-               if(match){
+               if (match) {
                  txnObserver.next(cursor.value);
                }
              }
-             else{
+             else {
                txnObserver.next(cursor.value);
              }
              cursor.continue();
@@ -192,7 +192,7 @@ export class Database {
            else {
              txnObserver.complete();
            }
-         }
+         };
 
          txn.addEventListener(IDB_ERROR, onTxnError);
 
@@ -203,13 +203,13 @@ export class Database {
            getRequest.removeEventListener(IDB_SUCCESS, onRecordFound);
            getRequest.removeEventListener(IDB_ERROR, onTxnError);
            txn.removeEventListener(IDB_ERROR, onTxnError);
-         }
+         };
 
         });
       });
   }
 
-  executeWrite(storeName:string, actionType:string, records:any[]){
+  executeWrite(storeName: string, actionType: string, records: any[]) {
     const changes = this.changes;
     return this.open(this._schema.name)
       .mergeMap(db => {
@@ -228,12 +228,12 @@ export class Database {
           const makeRequest = (record) => {
             return new Observable(reqObserver => {
               let req;
-              if(recordSchema.primaryKey){
+              if (recordSchema.primaryKey) {
                 req = objectStore[actionType](record);
               }
               else {
                 let $key = record['$key'];
-                let $record = Object.assign({}, record);
+                let $record = (Object as any).assign({}, record);
                 delete $record.key;
                 req = objectStore[actionType]($record, $key);
               }
@@ -245,9 +245,9 @@ export class Database {
                 reqObserver.error(err);
               });
             });
-          }
+          };
 
-          let requestSubscriber = Observable.fromArray(records)
+          let requestSubscriber = Observable.from(records)
             .mergeMap(makeRequest)
             .subscribe(txnObserver);
 
@@ -255,26 +255,21 @@ export class Database {
             requestSubscriber.unsubscribe();
             txn.removeEventListener(IDB_COMPLETE, onTxnComplete);
             txn.removeEventListener(IDB_ERROR, onTxnError);
-          }
+          };
         });
       });
   }
 
-  compare(a:any, b:any):number{
+  compare(a: any, b: any): number {
     return this._idb.cmp(a, b);
   }
 }
 
-export const DB_PROVIDERS:any[] = [
+export const DB_PROVIDERS: any[] = [
   provide(DatabaseBackend, {useFactory: getIDBFactory}),
   Database
 ];
 
 export const provideDB = (schema: DBSchema) => {
   return DB_PROVIDERS.concat([provide(IDB_SCHEMA, {useValue: schema})]);
-}
-
-
-
-
-
+};

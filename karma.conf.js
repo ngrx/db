@@ -19,12 +19,11 @@ module.exports = function(config) {
       'node_modules/systemjs/dist/system.js',
       'spec/support/karma-system.js',
       'node_modules/reflect-metadata/Reflect.js',
-      {pattern: 'node_modules/angular2/src/**/*.js', included: false},
-      {pattern: 'node_modules/angular2/*.js', included: false},
+      {pattern: 'node_modules/@angular/**/*.js', included: false},
       {pattern: 'node_modules/rxjs/**/*.js', included: false},
 
       {pattern: 'src/**/*', included: false},
-      {pattern: 'spec/**/*', included: false},
+      {pattern: 'spec/**/*', included: false}
     ],
 
 

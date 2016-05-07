@@ -1,10 +1,12 @@
 import * as DB from '../src/database';
 
-import {Injector, provide} from 'angular2/core';
+import {ReflectiveInjector, provide} from '@angular/core';
+
+declare var jasmine;
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 2000;
 
-const todoAppSchema:DB.DBSchema = {
+const todoAppSchema: DB.DBSchema = {
   version: 1,
   name: 'todo_app',
   stores: {
@@ -13,10 +15,10 @@ const todoAppSchema:DB.DBSchema = {
     'friends': {autoIncrement: true},
     'users': {autoIncrement: true, primaryKey: 'userID'}
   }
-}
+};
 
 
-//cleanup function
+// cleanup function
 const deleteDatabase = (done) => {
 
   let del = indexedDB.deleteDatabase(todoAppSchema.name);
@@ -25,20 +27,20 @@ const deleteDatabase = (done) => {
     del.onblocked = undefined;
     console.error(err);
     throw err;
-  }
+  };
   del.onsuccess = () => {
     done();
-  }
-}
+  };
+};
 
 describe('database functionality', () => {
 
-  let idb:DB.Database;
+  let idb: DB.Database;
   let dbBackend;
-  let injector:Injector;
+  let injector: ReflectiveInjector;
 
   beforeEach(() => {
-    injector = Injector.resolveAndCreate([
+    injector = ReflectiveInjector.resolveAndCreate([
       DB.DB_PROVIDERS,
       DB.provideDB(todoAppSchema)
     ]);
@@ -65,12 +67,12 @@ describe('database functionality', () => {
   });
 
   it('should insert some data', (done) => {
-    idb.insert('todos',[{name: 'todo1'}, {name: 'todo2'}])
+    idb.insert('todos', [{name: 'todo1'}, {name: 'todo2'}])
       .toArray()
       .subscribe(results => {
         expect(results[0]).toEqual({$key: 1, name: 'todo1'});
         expect(results[1]).toEqual({$key: 2, name: 'todo2'});
-        done()
+        done();
       }, err => {
         console.error(err);
         done(err);
@@ -78,12 +80,12 @@ describe('database functionality', () => {
   });
 
   it('should insert some more data', (done) => {
-    idb.insert('todos',[{name: 'todo3'}, {name: 'todo4'}])
+    idb.insert('todos', [{name: 'todo3'}, {name: 'todo4'}])
       .toArray()
       .subscribe(results => {
         expect(results[0]).toEqual({$key: 3, name: 'todo3'});
         expect(results[1]).toEqual({$key: 4, name: 'todo4'});
-        done()
+        done();
       }, err => {
         console.error(err);
         done(err);
@@ -91,12 +93,12 @@ describe('database functionality', () => {
   });
 
   it('should update existing data', (done) => {
-    idb.insert('todos',[{$key: 3, name: 'todo3++'}, {$key: 4, name: 'todo4++'}])
+    idb.insert('todos', [{$key: 3, name: 'todo3++'}, {$key: 4, name: 'todo4++'}])
       .toArray()
       .subscribe(results => {
         expect(results[0]).toEqual({$key: 3, name: 'todo3++'});
         expect(results[1]).toEqual({$key: 4, name: 'todo4++'});
-        done()
+        done();
       }, err => {
         console.error(err);
         done(err);
@@ -104,12 +106,12 @@ describe('database functionality', () => {
   });
 
   it('should insert some more data with a primary key', (done) => {
-    idb.insert('users',[{userID: 'user1'}, {userID: 'user2'}])
+    idb.insert('users', [{userID: 'user1'}, {userID: 'user2'}])
       .toArray()
       .subscribe(results => {
         expect(results[0]).toEqual({userID: 'user1'});
         expect(results[1]).toEqual({userID: 'user2'});
-        done()
+        done();
       }, err => {
         console.error(err);
         done(err);
@@ -123,7 +125,7 @@ describe('database functionality', () => {
     idb.changes.subscribe(notif => {
       notificationCount++;
     });
-    idb.insert('todos',[{name: 'todo5'}, {name: 'todo6'}])
+    idb.insert('todos', [{name: 'todo5'}, {name: 'todo6'}])
       .toArray()
       .subscribe(() => {}, (err) => {}, () => {
         expect(notificationCount).toBe(2);
@@ -141,7 +143,7 @@ describe('database functionality', () => {
         done(err);
       }, () => {
         expect(found).toEqual({name: 'todo2'});
-        done()
+        done();
       });
   });
 
@@ -155,7 +157,7 @@ describe('database functionality', () => {
         done(err);
       }, () => {
         expect(found).toEqual({userID: 'user1'});
-        done()
+        done();
       });
   });
 
@@ -169,7 +171,7 @@ describe('database functionality', () => {
         done(err);
       }, () => {
         expect(found.length).toEqual(6);
-        done()
+        done();
       });
   });
 
@@ -183,9 +185,8 @@ describe('database functionality', () => {
         done(err);
       }, () => {
         expect(found.length).toEqual(1);
-        done()
+        done();
       });
   });
 
 });
-

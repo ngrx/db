@@ -17,10 +17,12 @@
   "author": "Rob Wormald <robwormald@gmail.com>",
   "license": "MIT",
   "peerDependencies": {
-    "angular2": "^2.0.0-beta.14",
-    "rxjs": "^5.0.0-beta.2"
+    "@angular/core": "^2.0.0-rc.1",
+    "rxjs": "^5.0.0-beta.6"
   },
   "devDependencies": {
+    "@angular/core": "^2.0.0-rc.1",
+    "@angular/platform-browser-dynamic": "^2.0.0-rc.1",
     "es6-promise": "^3.0.2",
     "es6-shim": "^0.33.13",
     "http-server": "^0.8.5",

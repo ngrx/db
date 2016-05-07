@@ -1,8 +1,8 @@
-import {Component} from 'angular2/core';
-import {bootstrap} from 'angular2/platform/browser';
+import {Component} from '@angular/core';
+import {bootstrap} from '@angular/platform-browser-dynamic';
 import {Database, provideDB, DBSchema} from '../src/index';
 
-const todoAppSchema:DBSchema = {
+const todoAppSchema: DBSchema = {
   version: 1,
   name: 'todo_app',
   stores: {
@@ -10,7 +10,7 @@ const todoAppSchema:DBSchema = {
     'categories': {autoIncrement: true},
     'friends': {autoIncrement: true}
   }
-}
+};
 
 
 
@@ -21,8 +21,8 @@ const todoAppSchema:DBSchema = {
   `
 })
 class DatabaseDemo {
-  constructor(public db:Database){
-    db.insert('todos', [{name: 'todo1'},{name: 'todo2'},{name: 'todo3'}])
+  constructor(public db: Database) {
+    db.insert('todos', [{name: 'todo1'}, {name: 'todo2'}, {name: 'todo3'}])
     .subscribe(
       rec => console.log(rec),
       err => console.error(err),
