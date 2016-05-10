@@ -12,14 +12,15 @@ System.config({
   //transpiler: 'typescript',
   map: {
     'typescript': 'node_modules/typescript/lib/typescript.js',
-    'angular2': 'node_modules/angular2',
+    '@angular': 'node_modules/@angular',
     'rxjs': 'node_modules/rxjs',
     'spec': 'spec',
     'db': 'src'
   },
   packages: {
-    'angular2': {
-      defaultExtension: 'js'
+    '@angular/core': {
+      defaultExtension: 'js',
+      main: 'index.js'
     },
     'rxjs': {
       defaultExtension: 'js'
@@ -36,7 +37,7 @@ System.config({
 
 // Import all the specs, execute their `main()` method and kick off Karma (Jasmine).
 System.import('spec').then(function(mod) {
-  return; 
+  return;
 })
 .catch(function(err){
   console.log(err);
