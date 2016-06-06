@@ -33,7 +33,7 @@
     "karma-firefox-launcher": "^0.1.7",
     "karma-jasmine": "^0.3.6",
     "reflect-metadata": "^0.1.2",
-    "rxjs": "^5.0.0-beta.6",
+    "rxjs": "5.0.0-beta.6",
     "systemjs": "^0.19.11",
     "typescript": "^1.7.5",
     "yargs": "^3.31.0",
