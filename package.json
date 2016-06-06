@@ -39,5 +39,5 @@
     "yargs": "^3.31.0",
     "zone.js": "^0.6.12"
   },
-  "typings": "dist/database.d.ts"
+  "typings": "index.d.ts"
 }
