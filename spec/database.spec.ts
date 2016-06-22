@@ -188,4 +188,29 @@ describe('database functionality', () => {
       });
   });
 
+  it('should clear store', (done) => {
+    let found;
+    idb.clear('todos').subscribe(
+      () => {},
+      err => {
+        console.error(err),
+        done(err);
+      },
+      () => {
+        idb.query('todos').toArray().subscribe(
+          (records) => {
+            found = records;
+          },
+          err => {
+            console.error(err);
+            done(err);
+          },
+          () => {
+            expect(found.length).toEqual(0);
+            done();
+          }
+        );
+      })
+  });
+
 });
