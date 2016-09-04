@@ -1,12 +1,13 @@
-import {Observable} from 'rxjs/Observable';
-import {Subscriber} from 'rxjs/Subscriber';
-import {Subject} from 'rxjs/Subject';
-import {OpaqueToken, Inject, provide} from '@angular/core';
-import 'rxjs/add/operator/mergeMap';
-import 'rxjs/add/operator/map';
-import 'rxjs/add/operator/do';
-import 'rxjs/add/operator/toArray';
-import 'rxjs/add/observable/from';
+import { Observable } from 'rxjs/Observable';
+import { Observer } from 'rxjs/Observer';
+import { Subscriber } from 'rxjs/Subscriber';
+import { Subject } from 'rxjs/Subject';
+import { mergeMap } from 'rxjs/operator/mergeMap';
+import { map } from 'rxjs/operator/map';
+import { _do } from 'rxjs/operator/do';
+import { from } from 'rxjs/observable/from';
+import { OpaqueToken, Inject, NgModule, ModuleWithProviders } from '@angular/core';
+
 
 const IDB_SUCCESS = 'success';
 const IDB_COMPLETE = 'complete';
@@ -36,7 +37,9 @@ export interface DBSchema {
   stores: {[storename: string]: DBStore};
 }
 
-export const getIDBFactory = () => window.indexedDB || self.indexedDB;
+export function getIDBFactory(): IDBFactory {
+  return typeof window !== 'undefined' ? window.indexedDB : self.indexedDB;
+}
 
 export class Database {
 
@@ -45,7 +48,7 @@ export class Database {
   private _idb: IDBFactory;
   private _schema: DBSchema;
 
-  constructor(@Inject(DatabaseBackend) idbBackend, @Inject(IDB_SCHEMA) schema) {
+  constructor(@Inject(DatabaseBackend) idbBackend: IDBFactory, @Inject(IDB_SCHEMA) schema: DBSchema) {
     this._schema = schema;
     this._idb = idbBackend;
   }
@@ -59,7 +62,7 @@ export class Database {
     };
   }
 
-  private _upgradeDB(observer, db: IDBDatabase) {
+  private _upgradeDB(observer: Observer<IDBDatabase>, db: IDBDatabase) {
     for (let storeName in this._schema.stores) {
       if (db.objectStoreNames.contains(storeName)) {
         db.deleteObjectStore(storeName);
@@ -76,20 +79,20 @@ export class Database {
 
   open(dbName: string, version: number = 1, upgradeHandler?: DBUpgradeHandler): Observable<IDBDatabase> {
     const idb = this._idb;
-    return Observable.create((observer: Subscriber<any>) => {
+    return Observable.create((observer: Observer<any>) => {
 
       const openReq = idb.open(dbName, this._schema.version);
 
-      const onSuccess = (event) => {
+      const onSuccess = (event: any) => {
         observer.next(event.target.result);
         observer.complete();
       };
-      const onError = (err) => {
+      const onError = (err: any) => {
         console.log(err);
         observer.error(err);
       };
 
-      const onUpgradeNeeded = (event) => {
+      const onUpgradeNeeded = (event: any) => {
         this._upgradeDB(observer, event.target.result);
       };
 
@@ -106,17 +109,17 @@ export class Database {
     });
   }
 
-  deleteDatabase(dbName: string) {
-    return new Observable((deletionObserver: Subscriber<any>) => {
+  deleteDatabase(dbName: string): Observable<any> {
+    return new Observable((deletionObserver: Observer<any>) => {
 
       const deleteRequest = this._idb.deleteDatabase(dbName);
 
-      const onSuccess = (event) => {
+      const onSuccess = (event: any) => {
         deletionObserver.next(null);
         deletionObserver.complete();
       };
 
-      const onError = (err) => deletionObserver.error(err);
+      const onError = (err: any) => deletionObserver.error(err);
 
       deleteRequest.addEventListener(IDB_SUCCESS, onSuccess);
       deleteRequest.addEventListener(IDB_ERROR, onError);
@@ -128,15 +131,17 @@ export class Database {
     });
   }
 
-  insert(storeName: string, records: any[], notify: boolean = true) {
-    return this.executeWrite(storeName, 'put', records)
-      .do(payload => notify ? this.changes.next({type: DB_INSERT, payload }) : ({}));
+  insert(storeName: string, records: any[], notify: boolean = true): Observable<any> {
+    const write$ = this.executeWrite(storeName, 'put', records);
+
+    return _do.call(write$, (payload: any) => notify ? this.changes.next({type: DB_INSERT, payload }) : ({}));
   }
 
-  get(storeName: string, key: any) {
-    return this.open(this._schema.name)
-      .mergeMap(db => {
-        return new Observable(txnObserver => {
+  get(storeName: string, key: any): Observable<any> {
+    const open$ =  this.open(this._schema.name);
+
+    return mergeMap.call(open$, (db: IDBDatabase) => {
+        return new Observable((txnObserver: Observer<any>) => {
          const recordSchema = this._schema.stores[storeName];
          const mapper = this._mapRecord(recordSchema);
          const txn = db.transaction([storeName], IDB_TXN_READ);
@@ -144,9 +149,9 @@ export class Database {
 
          const getRequest = objectStore.get(key);
 
-         const onTxnError = (err) => txnObserver.error(err);
+         const onTxnError = (err: any) => txnObserver.error(err);
          const onTxnComplete = () => txnObserver.complete();
-         const onRecordFound = (ev) => txnObserver.next(getRequest.result);
+         const onRecordFound = (ev: any) => txnObserver.next(getRequest.result);
 
          txn.addEventListener(IDB_COMPLETE, onTxnComplete);
          txn.addEventListener(IDB_ERROR, onTxnError);
@@ -165,17 +170,18 @@ export class Database {
       });
   }
 
-  query(storeName: string, predicate?: (rec: any) => boolean) {
-    return this.open(this._schema.name)
-      .mergeMap(db => {
-        return new Observable(txnObserver => {
+  query(storeName: string, predicate?: (rec: any) => boolean): Observable<any> {
+    const open$ = this.open(this._schema.name);
+
+    return mergeMap.call(open$, (db: IDBDatabase) => {
+        return new Observable((txnObserver: Observer<any>) => {
          const txn = db.transaction([storeName], IDB_TXN_READ);
          const objectStore = txn.objectStore(storeName);
 
          const getRequest = objectStore.openCursor();
 
-         const onTxnError = (err) => txnObserver.error(err);
-         const onRecordFound = (ev) => {
+         const onTxnError = (err: any) => txnObserver.error(err);
+         const onRecordFound = (ev: any) => {
            let cursor = ev.target.result;
            if (cursor) {
              if (predicate) {
@@ -209,25 +215,26 @@ export class Database {
       });
   }
 
-  executeWrite(storeName: string, actionType: string, records: any[]) {
+  executeWrite(storeName: string, actionType: string, records: any[]): Observable<any> {
     const changes = this.changes;
-    return this.open(this._schema.name)
-      .mergeMap(db => {
-        return new Observable(txnObserver => {
+    const open$ = this.open(this._schema.name);
+
+    return mergeMap.call(open$, (db: IDBDatabase) => {
+        return new Observable((txnObserver: Observer<any>) => {
           const recordSchema = this._schema.stores[storeName];
           const mapper = this._mapRecord(recordSchema);
           const txn = db.transaction([storeName], IDB_TXN_READWRITE);
-          const objectStore = txn.objectStore(storeName);
+          const objectStore: any = txn.objectStore(storeName);
 
-          const onTxnError = (err) => txnObserver.error(err);
+          const onTxnError = (err: any) => txnObserver.error(err);
           const onTxnComplete = () => txnObserver.complete();
 
           txn.addEventListener(IDB_COMPLETE, onTxnComplete);
           txn.addEventListener(IDB_ERROR, onTxnError);
 
-          const makeRequest = (record) => {
-            return new Observable(reqObserver => {
-              let req;
+          const makeRequest = (record: any) => {
+            return new Observable((reqObserver: Observer<any>) => {
+              let req: any;
               if (recordSchema.primaryKey) {
                 req = objectStore[actionType](record);
               }
@@ -241,14 +248,13 @@ export class Database {
                 let $key = req.result;
                 reqObserver.next(mapper({$key, record}));
               });
-              req.addEventListener(IDB_ERROR, (err) => {
+              req.addEventListener(IDB_ERROR, (err: any) => {
                 reqObserver.error(err);
               });
             });
           };
 
-          let requestSubscriber = Observable.from(records)
-            .mergeMap(makeRequest)
+          let requestSubscriber = mergeMap.call(from(records), makeRequest)
             .subscribe(txnObserver);
 
           return () => {
@@ -265,11 +271,20 @@ export class Database {
   }
 }
 
-export const DB_PROVIDERS: any[] = [
-  provide(DatabaseBackend, {useFactory: getIDBFactory}),
-  Database
-];
 
-export const provideDB = (schema: DBSchema) => {
-  return DB_PROVIDERS.concat([provide(IDB_SCHEMA, {useValue: schema})]);
-};
+@NgModule({
+  providers: [
+    Database,
+    { provide: DatabaseBackend, useFactory: getIDBFactory }
+  ]
+})
+export class DBModule {
+  static provideDB(schema: DBSchema): ModuleWithProviders {
+    return {
+      ngModule: DBModule,
+      providers: [
+        { provide: IDB_SCHEMA, useValue: schema }
+      ]
+    };
+  }
+}

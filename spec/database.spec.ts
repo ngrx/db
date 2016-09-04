@@ -1,10 +1,7 @@
+import { TestBed, inject } from '@angular/core/testing';
 import * as DB from '../src/database';
+import 'rxjs/add/operator/toArray';
 
-import {ReflectiveInjector, provide} from '@angular/core';
-
-declare var jasmine;
-
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 2000;
 
 const todoAppSchema: DB.DBSchema = {
   version: 1,
@@ -19,7 +16,7 @@ const todoAppSchema: DB.DBSchema = {
 
 
 // cleanup function
-const deleteDatabase = (done) => {
+const deleteDatabase = (done: any) => {
 
   let del = indexedDB.deleteDatabase(todoAppSchema.name);
 
@@ -36,17 +33,19 @@ const deleteDatabase = (done) => {
 describe('database functionality', () => {
 
   let idb: DB.Database;
-  let dbBackend;
-  let injector: ReflectiveInjector;
+  let dbBackend: any;
 
   beforeEach(() => {
-    injector = ReflectiveInjector.resolveAndCreate([
-      DB.DB_PROVIDERS,
-      DB.provideDB(todoAppSchema)
-    ]);
-
-    idb = injector.get(DB.Database);
+    TestBed.configureTestingModule({
+      imports: [
+        DB.DBModule.provideDB(todoAppSchema)
+      ]
+    })
   });
+
+  beforeEach(inject([ DB.Database ], (_idb: DB.Database) => {
+    idb = _idb;
+  }))
 
   beforeAll((done) => {
     deleteDatabase(done);
@@ -69,52 +68,52 @@ describe('database functionality', () => {
   it('should insert some data', (done) => {
     idb.insert('todos', [{name: 'todo1'}, {name: 'todo2'}])
       .toArray()
-      .subscribe(results => {
+      .subscribe((results: any) => {
         expect(results[0]).toEqual({$key: 1, name: 'todo1'});
         expect(results[1]).toEqual({$key: 2, name: 'todo2'});
         done();
-      }, err => {
+      }, (err: any) => {
         console.error(err);
-        done(err);
+        done.fail(err);
       });
   });
 
   it('should insert some more data', (done) => {
     idb.insert('todos', [{name: 'todo3'}, {name: 'todo4'}])
       .toArray()
-      .subscribe(results => {
+      .subscribe((results: any) => {
         expect(results[0]).toEqual({$key: 3, name: 'todo3'});
         expect(results[1]).toEqual({$key: 4, name: 'todo4'});
         done();
-      }, err => {
+      }, (err: any) => {
         console.error(err);
-        done(err);
+        done.fail(err);
       });
   });
 
   it('should update existing data', (done) => {
     idb.insert('todos', [{$key: 3, name: 'todo3++'}, {$key: 4, name: 'todo4++'}])
       .toArray()
-      .subscribe(results => {
+      .subscribe((results: any) => {
         expect(results[0]).toEqual({$key: 3, name: 'todo3++'});
         expect(results[1]).toEqual({$key: 4, name: 'todo4++'});
         done();
-      }, err => {
+      }, (err: any) => {
         console.error(err);
-        done(err);
+        done.fail(err);
       });
   });
 
   it('should insert some more data with a primary key', (done) => {
     idb.insert('users', [{userID: 'user1'}, {userID: 'user2'}])
       .toArray()
-      .subscribe(results => {
+      .subscribe((results: any) => {
         expect(results[0]).toEqual({userID: 'user1'});
         expect(results[1]).toEqual({userID: 'user2'});
         done();
-      }, err => {
+      }, (err: any) => {
         console.error(err);
-        done(err);
+        done.fail(err);
       });
   });
 
@@ -127,20 +126,20 @@ describe('database functionality', () => {
     });
     idb.insert('todos', [{name: 'todo5'}, {name: 'todo6'}])
       .toArray()
-      .subscribe(() => {}, (err) => {}, () => {
+      .subscribe(() => {}, () => {}, () => {
         expect(notificationCount).toBe(2);
         done();
       });
   });
 
   it('should get a record by key', (done) => {
-    let found;
+    let found: any;
     idb.get('todos', 2)
-      .subscribe(record => {
+      .subscribe((record: any) => {
         found = record;
-      }, err => {
+      }, (err: any) => {
         console.error(err);
-        done(err);
+        done.fail(err);
       }, () => {
         expect(found).toEqual({name: 'todo2'});
         done();
@@ -148,13 +147,13 @@ describe('database functionality', () => {
   });
 
   it('should get a record by primaryKey', (done) => {
-    let found;
+    let found: any;
     idb.get('users', 'user1')
-      .subscribe(record => {
+      .subscribe((record: any) => {
         found = record;
-      }, err => {
+      }, (err: any) => {
         console.error(err);
-        done(err);
+        done.fail(err);
       }, () => {
         expect(found).toEqual({userID: 'user1'});
         done();
@@ -162,13 +161,13 @@ describe('database functionality', () => {
   });
 
   it('should iterate records', (done) => {
-    let found;
+    let found: any;
     idb.query('todos').toArray()
-      .subscribe(records => {
+      .subscribe((records: any) => {
         found = records;
-      }, err => {
+      }, (err: any) => {
         console.error(err);
-        done(err);
+        done.fail(err);
       }, () => {
         expect(found.length).toEqual(6);
         done();
@@ -176,13 +175,13 @@ describe('database functionality', () => {
   });
 
   it('should iterate records with a predicate fn', (done) => {
-    let found;
+    let found: any;
     idb.query('todos', (rec) => rec.name === 'todo5').toArray()
-      .subscribe(records => {
+      .subscribe((records: any) => {
         found = records;
-      }, err => {
+      }, (err: any) => {
         console.error(err);
-        done(err);
+        done.fail(err);
       }, () => {
         expect(found.length).toEqual(1);
         done();
