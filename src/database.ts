@@ -6,7 +6,7 @@ import { mergeMap } from 'rxjs/operator/mergeMap';
 import { map } from 'rxjs/operator/map';
 import { _do } from 'rxjs/operator/do';
 import { from } from 'rxjs/observable/from';
-import { OpaqueToken, Inject, NgModule, ModuleWithProviders } from '@angular/core';
+import { OpaqueToken, Inject, Injectable, NgModule, ModuleWithProviders } from '@angular/core';
 
 
 const IDB_SUCCESS = 'success';
@@ -41,6 +41,7 @@ export function getIDBFactory(): IDBFactory {
   return typeof window !== 'undefined' ? window.indexedDB : self.indexedDB;
 }
 
+@Injectable()
 export class Database {
 
   public changes: Subject<any> = new Subject();
@@ -48,7 +49,7 @@ export class Database {
   private _idb: IDBFactory;
   private _schema: DBSchema;
 
-  constructor(@Inject(DatabaseBackend) idbBackend: IDBFactory, @Inject(IDB_SCHEMA) schema: DBSchema) {
+  constructor(@Inject(DatabaseBackend) idbBackend: any, @Inject(IDB_SCHEMA) schema: any) {
     this._schema = schema;
     this._idb = idbBackend;
   }
