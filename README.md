@@ -8,9 +8,9 @@
 
 ### The RxJS Powered Local Storage Solution for Angular2 apps
 
-Most browsers have a local data storage mechanism called IndexedDB that allows your application to persist data after the browser is closed or refreshed. Ngrx/db is a library that provides a convenient API for storing and retrieving this data, and it fits nicely into Ngrx's reactive redux paradigm.
+Most browsers have a local data storage mechanism called IndexedDB that allows your application to persist data after the browser is closed or refreshed. ngrx/db is a library that provides a convenient API for storing and retrieving this data, and it fits nicely into ngrx's reactive redux paradigm.
 
-Just to make it totally clear, **Ngrx/db is a local data storing mechanism for preserving the Ngrx store after the page is reload or closed.** Please do not think this library has something to do with regular databases that are hosted on a server and live outside of your frontend code. Ngrx/db is solely for the local indexedDB data store built into browsers. The purpose of Ngrx/db is similar to *localstorage*, *cookies*, or *sessions* in the browser itself, and it just happens that the curent implementation of this feature in browsers right now is called "IndexedDB".
+Just to make it totally clear, **ngrx/db is a local data storing mechanism for preserving the ngrx store after the page is reload or closed.** Please do not think this library has something to do with regular databases that are hosted on a server and live outside of your frontend code. ngrx/db is solely for the local indexedDB data store built into browsers. The purpose of ngrx/db is similar to *localstorage*, *cookies*, or *sessions* in the browser itself, and it just happens that the curent implementation of this feature in browsers right now is called "IndexedDB".
 
  <img src="./chef-nice-data-ngrx-db.png" height="250">
 
@@ -24,7 +24,7 @@ Just to make it totally clear, **Ngrx/db is a local data storing mechanism for p
 npm install @ngrx/db --save
 ```
 
-2) Initialize Ngrx/db with your schema in NgModule
+2) Initialize ngrx/db with your schema in NgModule
 
 Add *DBModule.provideDB()* to the *imports* array of @NgModule metatada, passing in a schema, which is a config object for indexedDB.
 
@@ -62,7 +62,7 @@ export const mySchema: DBSchema = {
 };
 ```
 
-Where "initialState" is the same object you are using when you create a normal Ngrx reducer:
+Where "initialState" is the same object you are using when you create a normal ngrx reducer:
 
 ```
 export const mainStoreReducer: ActionReducer<MainState> =
@@ -72,13 +72,13 @@ export const mainStoreReducer: ActionReducer<MainState> =
 ```
 
 
-### Using Ngrx/db In Ngrx/Effects
-If you are following best practices for Ngrx then you should be using Ngrx/Effects for *[side effects](https://en.wikipedia.org/wiki/Side_effect_(computer_science)).* Since accessing the indexedDB storage machanism in the browser is in a way "reaching out to the outside world" it makes sense to put operations on the indexedDB in Ngrx Effects. The code snippets below are examples of @Effects that retrieve and save data from indexedDB whith the Ngrx/db Database object.
+### Using ngrx/db In ngrx/effects
+If you are following best practices for ngrx then you should be using ngrx/effects for *[side effects](https://en.wikipedia.org/wiki/Side_effect_(computer_science)).* Since accessing the indexedDB storage machanism in the browser is in a way "reaching out to the outside world" it makes sense to put operations on the indexedDB in ngrx Effects. The code snippets below are examples of @Effects that retrieve and save data from indexedDB whith the ngrx/db Database object.
 
 
 ### Injecting Database Object
 
-The Ngrx/db provides a *Database* object for you to inject in the constructor:
+The ngrx/db provides a *Database* object for you to inject in the constructor:
 
 ```
 @Injectable()
@@ -140,7 +140,7 @@ The dev tools in the Google Chrome browsers provide a very convenient way of val
 <img src="./dev-tools-indexedDB-screenshot.png" height="250">
 
 
-## Example Projects That Use Ngrx/Db
+## Example Projects That Use ngrx/db
 
 * https://github.com/xlozinguez/angular-nyc-advanced-ngrx
 
@@ -148,5 +148,5 @@ The dev tools in the Google Chrome browsers provide a very convenient way of val
 
 ### TODO
 
-Link to more example projects that use Ngrx/db.
+Link to more example projects that use ngrx/db.
 
