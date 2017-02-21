@@ -30,3 +30,6 @@ typings
 dist
 example_dist
 release
+
+# Webstorm artifacts
+.idea
