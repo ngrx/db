@@ -4,8 +4,6 @@
 )](https://circleci.com/gh/ngrx/db)
 [![npm version](https://badge.fury.io/js/%40ngrx%2Fstore.svg)](https://badge.fury.io/js/%40ngrx%2Fdb)
 
-## __**USE ME NOW!**__
-
 ### The RxJS Powered Local Storage Solution for Angular2 apps
 
 Most browsers have a local data storage mechanism called IndexedDB that allows your application to persist data after the browser is closed or refreshed. ngrx/db is a library that provides a convenient API for storing and retrieving this data, and it fits nicely into ngrx's reactive redux paradigm.
