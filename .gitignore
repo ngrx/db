@@ -30,3 +30,4 @@ typings
 dist
 example_dist
 release
+*.ngsummary.json

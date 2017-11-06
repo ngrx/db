@@ -6,7 +6,7 @@ import { mergeMap } from 'rxjs/operator/mergeMap';
 import { map } from 'rxjs/operator/map';
 import { _do } from 'rxjs/operator/do';
 import { from } from 'rxjs/observable/from';
-import { OpaqueToken, Inject, Injectable, NgModule, ModuleWithProviders } from '@angular/core';
+import { InjectionToken, Inject, Injectable, NgModule, ModuleWithProviders } from '@angular/core';
 
 
 const IDB_SUCCESS = 'success';
@@ -19,8 +19,8 @@ const IDB_TXN_READWRITE = 'readwrite';
 
 export const DB_INSERT = 'DB_INSERT';
 
-export const DatabaseBackend = new OpaqueToken('IndexedDBBackend');
-export const IDB_SCHEMA = new OpaqueToken('IDB_SCHEMA');
+export const DatabaseBackend = new InjectionToken('IndexedDBBackend');
+export const IDB_SCHEMA = new InjectionToken('IDB_SCHEMA');
 
 export interface DBUpgradeHandler {
   (db: IDBDatabase): void;
