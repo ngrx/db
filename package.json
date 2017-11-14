@@ -1,6 +1,6 @@
 {
   "name": "@ngrx/db",
-  "version": "2.0.2",
+  "version": "2.1.0",
   "description": "RxJS + IndexedDB for Angular",
   "main": "bundles/db.umd.js",
   "module": "index.js",
